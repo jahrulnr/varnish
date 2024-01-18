@@ -1,4 +1,3 @@
-# Gunakan base image untuk arsitektur ARM64
 FROM varnish:latest
  
 USER root
