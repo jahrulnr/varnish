@@ -1,0 +1,10 @@
+RELOAD_VCL=1
+VARNISH_VCL_CONF=/etc/varnish/default.vcl
+VARNISH_LISTEN_PORT=8123
+VARNISH_ADMIN_LISTEN_ADDRESS=127.0.0.1
+VARNISH_ADMIN_LISTEN_PORT=6082
+VARNISH_SECRET_FILE=/etc/varnish/secret
+VARNISH_STORAGE="malloc,2G"
+VARNISH_USER=varnish
+VARNISH_GROUP=varnish
+DAEMON_OPTS="-p thread_pool_min=5 -p thread_pool_max=1500 -p thread_pool_timeout=300 -p http_resp_size=256k -p http_resp_hdr_len=256k -p listen_depth=2048 -p lru_interval=1800 -p workspace_backend=2M -h classic,169313 -p connect_timeout=600 -p max_restarts=6 -s malloc,2G"

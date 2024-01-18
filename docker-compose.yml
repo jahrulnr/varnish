@@ -1,0 +1,22 @@
+version: '2'
+
+services:
+  vsh-bangunsoft:
+    image: vsh-bangunsoft:latest
+    container_name: vsh-bangunsoft
+    privileged: true
+    cpus: 0.5
+    mem_limit: 128M
+    memswap_limit: 1G
+    mem_swappiness: 80
+    ports:
+      - "127.0.0.1:8123:8123"
+    networks:
+      - vsh
+    
+networks:
+  vsh:
+    external:
+      name: cloudflared_bangunsoft
+
+      
