@@ -3,16 +3,16 @@ import directors;
 import std;
 
 backend backend {
-    .host = "--host--";
-    .port = "--port--";
-    .connect_timeout = 900s;
-    .first_byte_timeout = 900s;
-    .between_bytes_timeout = 900s;
+  .host = "--host--";
+  .port = "--port--";
+  .connect_timeout = 900s;
+  .first_byte_timeout = 900s;
+  .between_bytes_timeout = 900s;
 }
 
 sub vcl_init {
-    new apache = directors.round_robin();
-    apache.add_backend(backend);
+  new apache = directors.round_robin();
+  apache.add_backend(backend);
 }
 
 acl purge {
@@ -24,6 +24,13 @@ sub vcl_recv {
   if (req.url ~ "^/healt$" ){
     return(synth(200, "Varnish Heathly"));
   }
+
+  if (req.http.url ~ "^/auth"
+   || req.http.url ~ "^/backend"
+  ) {
+    return (pass);
+  }
+
   if (req.method == "BAN") {
     if (!client.ip ~ purge) {
       return (synth(405, "Not allowed."));
@@ -40,16 +47,15 @@ sub vcl_recv {
     return (pass);
   }
 
-  set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(_[_a-z]+|has_js|is_unique)=[^;]*", "");
-  set req.http.Cookie = regsub(req.http.Cookie, "^;\s*", "");
 }
 
 sub vcl_backend_response {
-  if ( bereq.url ~ "/auth" 
-    || bereq.url ~ "/backend"
+  if ( bereq.url ~ "^/auth" 
+    || bereq.url ~ "^/backend"
   ) {
     return (pass);
   }
+
   if ( beresp.status == 500
     || beresp.status == 503
     || beresp.status == 502
@@ -57,6 +63,11 @@ sub vcl_backend_response {
   ) {
     return (retry);
   }
+
+  if (beresp.http.X-Cache == "1"){
+    unset beresp.http.Set-Cookie;
+  }
+
   set beresp.http.X-Url = bereq.url;
   set beresp.http.X-Host = bereq.http.host;
   set beresp.grace = 2h;
@@ -70,14 +81,15 @@ sub vcl_backend_response {
 }
 
 sub vcl_deliver {
-    unset resp.http.X-Url;
-    unset resp.http.X-Host;
-    unset resp.http.X-Powered-By;
-    unset resp.http.Server;
-    if (obj.hits > 0) {
-      set resp.http.X-Cache = "HIT";
-    } else {
-      set resp.http.X-Cache = "MISS";
-    }
-    set resp.http.X-Frame-Options = "SAMEORIGIN";
+  unset resp.http.X-Url;
+  unset resp.http.X-Host;
+  unset resp.http.X-Powered-By;
+  unset resp.http.Server;
+
+  if (obj.hits > 0) {
+    set resp.http.X-Cache = "HIT";
+  } else {
+    set resp.http.X-Cache = "MISS";
+  }
+  set resp.http.X-Frame-Options = "SAMEORIGIN";
 }
