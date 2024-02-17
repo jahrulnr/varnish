@@ -6,7 +6,7 @@ services:
     container_name: vsh-bangunsoft
     privileged: true
     cpus: 0.5
-    mem_limit: 128M
+    mem_limit: 512M
     memswap_limit: 1G
     mem_swappiness: 80
     ports:
